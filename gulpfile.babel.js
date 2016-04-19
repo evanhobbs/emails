@@ -119,10 +119,10 @@ function inliner(css) {
       applyStyleTags: false
     })
     .pipe($.replace, '<!-- <style> -->', `<style>${mqCss}</style>`)
-    .pipe($.htmlmin, {
-      collapseWhitespace: true,
-      minifyCSS: true
-    })
+    // .pipe($.htmlmin, {
+    //   collapseWhitespace: true,
+    //   minifyCSS: true
+    // })
 
   return pipe()
 }
