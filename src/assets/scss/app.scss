@@ -1,0 +1,41 @@
+@import 'settings';
+@import 'foundation';
+
+table.button table td {
+  border-radius: $button-radius;
+  border: none;
+}
+
+table.button:hover,
+table.button:visited,
+table.button:active {
+  table {
+    td {
+      background: #6ed14f;
+    }
+  }
+}
+
+.payment-reminder__sub-header {
+  background: #1cacca;
+  h2 {
+    color: white;
+    margin-bottom: 20px;
+  }
+  img {
+    margin: 40px 0 30px;
+  }
+}
+
+.row--logo-header {
+  margin: 30px 0 10px;
+  img {
+    width: 165px;
+  }
+}
+
+.container {
+  &--no-bg {
+    background: none !important;
+  }
+}
