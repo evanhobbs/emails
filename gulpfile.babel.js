@@ -37,20 +37,20 @@ gulp.task('litmus',
 gulp.task('zip',
   gulp.series('build', zip))
 
-function preview(done) {
+function preview (done) {
   return gulp.src('preview/**/*')
     .pipe(gulp.dest('./dist'))
 }
 
 // Delete the "dist" folder
 // This happens every time a build starts
-function clean(done) {
+function clean (done) {
   rimraf('dist', done)
 }
 
 // Compile layouts, pages, and partials into flat HTML files
 // Then parse using Inky templates
-function pages() {
+function pages () {
   return gulp.src('src/pages/**/*.html')
     .pipe(panini({
       root: 'src/pages',
@@ -63,13 +63,13 @@ function pages() {
 }
 
 // Reset Panini's cache of layouts and partials
-function resetPages(done) {
+function resetPages (done) {
   panini.refresh()
   done()
 }
 
 // Compile Sass into CSS
-function sass() {
+function sass () {
   return gulp.src('src/assets/scss/app.scss')
     .pipe($.if(!PRODUCTION, $.sourcemaps.init()))
     .pipe($.sass({
@@ -80,21 +80,21 @@ function sass() {
 }
 
 // Copy and compress images
-function images() {
+function images () {
   return gulp.src('src/assets/img/*')
     .pipe($.imagemin())
     .pipe(gulp.dest('./dist/assets/img'))
 }
 
 // Inline CSS and minify HTML
-function inline() {
+function inline () {
   return gulp.src('dist/**/*.html')
     .pipe($.if(PRODUCTION, inliner('dist/css/app.css')))
     .pipe(gulp.dest('dist'))
 }
 
 // Start a server with LiveReload to preview the site in
-function server(done) {
+function server (done) {
   browser.init({
     server: 'dist'
   })
@@ -102,7 +102,7 @@ function server(done) {
 }
 
 // Watch for file changes
-function watch() {
+function watch () {
   gulp.watch('src/pages/**/*.html', gulp.series(pages, inline, browser.reload))
   gulp.watch(['src/layouts/**/*', 'src/partials/**/*'], gulp.series(resetPages, pages, inline, browser.reload))
   gulp.watch(['../scss/**/*.scss', 'src/assets/scss/**/*.scss'], gulp.series(sass, pages, inline, browser.reload))
@@ -110,7 +110,7 @@ function watch() {
 }
 
 // Inlines CSS into HTML, adds media query CSS into the <style> tag of the email, and compresses the HTML
-function inliner(css) {
+function inliner (css) {
   var css = fs.readFileSync(css).toString()
   var mqCss = siphon(css)
 
@@ -128,10 +128,11 @@ function inliner(css) {
 }
 
 // Ensure creds for Litmus are at least there.
-function creds(done) {
+function creds (done) {
   var configPath = './config.json'
-  try { CONFIG = JSON.parse(fs.readFileSync(configPath)) }
-  catch(e) {
+  try {
+    CONFIG = JSON.parse(fs.readFileSync(configPath))
+  } catch (e) {
     beep()
     console.log('[AWS]'.bold.red + ' Sorry, there was an issue locating your config.json. Please see README.md')
     process.exit()
@@ -140,7 +141,7 @@ function creds(done) {
 }
 
 // Post images to AWS S3 so they are accessible to Litmus test
-function aws() {
+function aws () {
   var publisher = !!CONFIG.aws ? $.awspublish.create(CONFIG.aws) : $.awspublish.create()
   var headers = {
     'Cache-Control': 'max-age=315360000, no-transform, public'
@@ -152,39 +153,39 @@ function aws() {
     .pipe(publisher.publish(headers))
 
     // create a cache file to speed up consecutive uploads
-    //.pipe(publisher.cache())
+    // .pipe(publisher.cache())
 
     // print upload updates to console
     .pipe($.awspublish.reporter())
 }
 
 // Send email to Litmus for testing. If no AWS creds then do not replace img urls.
-function litmus() {
+function litmus () {
   var awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
 
-  return gulp.src('dist/**/*.html')
-    .pipe($.if(!!awsURL, $.replace(/=('|")(\/?assets\/img)/g, "=$1"+ awsURL)))
+  return gulp.src(['dist/**/*.html', '!dist/preview.html'])
+    .pipe($.if(!!awsURL, $.replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)))
     .pipe($.litmus(CONFIG.litmus))
     .pipe(gulp.dest('dist'))
 }
 
 // Copy and compress into Zip
-function zip() {
+function zip () {
   var dist = 'dist'
   var ext = '.html'
 
-  function getHtmlFiles(dir) {
+  function getHtmlFiles (dir) {
     return fs.readdirSync(dir)
-      .filter(function(file) {
+      .filter(function (file) {
         var fileExt = path.join(dir, file)
-        var isHtml = path.extname(fileExt) == ext
+        var isHtml = path.extname(fileExt) === ext
         return fs.statSync(fileExt).isFile() && isHtml
       })
   }
 
   var htmlFiles = getHtmlFiles(dist)
 
-  var moveTasks = htmlFiles.map(function(file){
+  var moveTasks = htmlFiles.map(function (file) {
     var sourcePath = path.join(dist, file)
     var fileName = path.basename(sourcePath, ext)
 
@@ -195,18 +196,16 @@ function zip() {
       }))
 
     var moveImages = gulp.src(sourcePath)
-      .pipe($.htmlSrc({ selector: 'img'}))
+      .pipe($.htmlSrc({ selector: 'img' }))
       .pipe($.rename(function (path) {
         path.dirname = fileName + '/assets/img'
         return path
       }))
 
     return merge(moveHTML, moveImages)
-      .pipe($.zip(fileName+ '.zip'))
+      .pipe($.zip(fileName + '.zip'))
       .pipe(gulp.dest('dist'))
   })
 
   return merge(moveTasks)
 }
-
-
