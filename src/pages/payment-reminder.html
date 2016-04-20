@@ -8,30 +8,26 @@ subject: My Email Subject
   <row class="payment-reminder__sub-header">
     <columns small="12" large="12">
       <center>
-        <img src="assets/img/calendar.png" alt="">
+        <img class="payment-reminder__calendar" src="assets/img/calendar.png" alt="">
         <h2>Upcoming payment reminder</h2>
       </center>
     </columns>
   </row>
   <row>
     <columns small="12" large="12">
-      <h6 class="text-center" style="margin-top: 40px;"><strong>It's that time again.<br>Your payment for account is due.</strong></h6>
+      <h6 class="text-center" style="margin-top: 40px;"><strong>It's that time again.<br>Your payment for {{hb 'account'}} is due.</strong></h6>
     </columns>
   </row>
   <row>
     <columns small="12" large="12">
       <center>
-        <p>Head to {{{{raw}}}}{{ unparsed }}{{{{/raw}}}} to adjust your payment to the optimized amount.</p>
-        <hr>
+        <p>Head to {{hb 'account'}}'s to adjust your payment to the optimized amount.</p>
+        <hr class="payment-reminder__divider">
         <h6><strong>Already paid your bill?<br>Way to go!</strong></h6>
-        <button class="default" href="#">View payment plan</button>
+        <button class="default large payment-reminder__button" href="#">View payment plan</button>
       </center>
     </columns>
   </row>
   <row>
 </container>
-<container class="container--no-bg">
-  <center>
-    <a href="https://nerdwallet.com/home/unsubscribe/payment-reminder">unsubscribe</a>
-  </center>
-</container>
+{{> unsubscribe href='http://nerdwallet.com/home/unsubscribe'}}

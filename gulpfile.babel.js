@@ -11,7 +11,6 @@ import siphon from 'siphon-media-query'
 import path from 'path'
 import merge from 'merge-stream'
 import beep from 'beepbeep'
-import colors from 'colors'
 
 const $ = plugins()
 

@@ -16,26 +16,39 @@ table.button:active {
   }
 }
 
-.payment-reminder__sub-header {
-  background: #1cacca;
-  h2 {
-    color: white;
-    margin-bottom: 20px;
+.payment-reminder {
+  &__sub-header {
+    background: #1cacca;
+    h2 {
+      color: white;
+      margin-bottom: 20px;
+    }
   }
-  img {
-    margin: 40px 0 30px;
+  &__calendar {
+    margin: 40px 0 30px !important;
+  }
+  &__button {
+    margin-top: 20px !important;
+  }
+  &__divider {
+    margin: 40px auto;
   }
 }
 
 .row--logo-header {
   margin: 30px 0 10px;
-  img {
-    width: 165px;
-  }
 }
 
 .container {
   &--no-bg {
     background: none !important;
   }
+  &--unsubscribe {
+    background: none !important;
+    margin-top: 20px !important;
+  }
+}
+
+#logo-header-image {
+  width: 165px !important;
 }
