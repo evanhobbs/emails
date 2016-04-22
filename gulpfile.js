@@ -1,24 +1,30 @@
-import gulp from 'gulp'
-import plugins from 'gulp-load-plugins'
-import browser from 'browser-sync'
-import rimraf from 'rimraf'
-import panini from 'panini'
-import yargs from 'yargs'
-import lazypipe from 'lazypipe'
-import inky from 'inky'
-import fs from 'fs'
-import siphon from 'siphon-media-query'
-import path from 'path'
-import merge from 'merge-stream'
-import beep from 'beepbeep'
-
+var gulp = require('gulp')
+var plugins = require('gulp-load-plugins')
+var browser = require('browser-sync')
+var rimraf = require('rimraf')
+var panini = require('panini')
+var yargs = require('yargs')
+var lazypipe = require('lazypipe')
+var inky = require('inky')
+var fs = require('fs')
+var siphon = require('siphon-media-query')
+var path = require('path')
+var merge = require('merge-stream')
+var Mandrill = require('mandrill-api').Mandrill
 const $ = plugins()
 
 // Look for the --production flag
-const PRODUCTION = !!(yargs.argv.production)
+var PRODUCTION = !!(yargs.argv.production)
+// used for processes that need to enforce production
+function setProduction(done) {
+  PRODUCTION = true
+  done()
+}
 
-// Declar var so that both AWS and Litmus task can use it.
-var CONFIG
+const CONFIG = JSON.parse(fs.readFileSync('./config.json'))
+
+const awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
+const mandrill_client = new Mandrill(CONFIG.mandrill_key)
 
 // Build the "dist" folder by running all of the above tasks
 gulp.task('build',
@@ -30,11 +36,13 @@ gulp.task('default',
 
 // Build emails, then send to litmus
 gulp.task('litmus',
-  gulp.series('build', creds, aws, litmus))
+  gulp.series('build', aws, litmus))
 
 // Build emails, then zip
 gulp.task('zip',
   gulp.series('build', zip))
+
+gulp.task('updateMandrill', gulp.series(setProduction, 'build', aws, updateMandrill))
 
 function preview (done) {
   return gulp.src('preview/**/*')
@@ -126,19 +134,6 @@ function inliner (css) {
   return pipe()
 }
 
-// Ensure creds for Litmus are at least there.
-function creds (done) {
-  var configPath = './config.json'
-  try {
-    CONFIG = JSON.parse(fs.readFileSync(configPath))
-  } catch (e) {
-    beep()
-    console.log('[AWS]'.bold.red + ' Sorry, there was an issue locating your config.json. Please see README.md')
-    process.exit()
-  }
-  done()
-}
-
 // Post images to AWS S3 so they are accessible to Litmus test
 function aws () {
   var publisher = !!CONFIG.aws ? $.awspublish.create(CONFIG.aws) : $.awspublish.create()
@@ -160,12 +155,31 @@ function aws () {
 
 // Send email to Litmus for testing. If no AWS creds then do not replace img urls.
 function litmus () {
-  var awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
+  // var awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
 
   return gulp.src(['dist/**/*.html', '!dist/preview.html'])
     .pipe($.if(!!awsURL, $.replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)))
     .pipe($.litmus(CONFIG.litmus))
     .pipe(gulp.dest('dist'))
+}
+
+function updateMandrill (done) {
+  const templateName = yargs.argv.template
+  const html = fs.readFileSync('./dist/' + templateName + '.html').toString().replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)
+  mandrill_client.templates.update({
+    'name': templateName,
+    'code': html,
+    'publish': true
+  },
+  function (result) {
+    result.code = result.publish_code = '[ abridged ]'
+    console.log('Mandrill template updated successfully!')
+    console.log(result)
+    done()
+  },
+  function (e) {
+    throw new Error('A mandrill error occurred: ' + e.name + ' - ' + e.message)
+  })
 }
 
 // Copy and compress into Zip
