@@ -11,12 +11,46 @@ var siphon = require('siphon-media-query')
 var path = require('path')
 var merge = require('merge-stream')
 var Mandrill = require('mandrill-api').Mandrill
-const $ = plugins()
+var Handlebars = require('handlebars')
+var through = require('through2')
 
+// mandrill has it's own custom handlebars helpers - simulating them here so we can
+// do a pretend compile locally
+var mandrillHandlebarsHelpers = {
+  if: function (statement, options) {
+    var result = (function (data) {
+      // make all the attributes for data local variables for eval
+      Object.keys(data).forEach(key => this[key] = data[key])
+      return eval(statement)
+    }(this))
+
+    if (result) return options.fn(this)
+    else return options.inverse(this)
+  }
+}
+
+Handlebars.registerHelper(mandrillHandlebarsHelpers)
+
+var simulateMandrillHandlebars = function () {
+  return through.obj(function (file, encoding, callback) {
+    var templateData = require('./src/fixtures/' + path.basename(file.path, '.html'))
+    var html = file.contents.toString()
+    // the first panini compile html escapes all the " and ' in hb tags so convert them
+    // back before recompiling
+    html = html.replace(/\{\{.*?\}\}/g, function (match) {
+      return match.replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    })
+    var template = Handlebars.compile(html)
+    file.contents = new Buffer(template(templateData))
+    callback(null, file)
+  })
+}
+
+const $ = plugins()
 // Look for the --production flag
 var PRODUCTION = !!(yargs.argv.production)
 // used for processes that need to enforce production
-function setProduction(done) {
+function setProduction (done) {
   PRODUCTION = true
   done()
 }
@@ -66,6 +100,7 @@ function pages () {
       helpers: 'src/helpers'
     }))
     .pipe(inky())
+    .pipe($.if(!PRODUCTION, simulateMandrillHandlebars()))
     .pipe(gulp.dest('dist'))
 }
 
@@ -158,6 +193,7 @@ function litmus () {
   // var awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
 
   return gulp.src(['dist/**/*.html', '!dist/preview.html'])
+    .pipe(mandrillHandlebars())
     .pipe($.if(!!awsURL, $.replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)))
     .pipe($.litmus(CONFIG.litmus))
     .pipe(gulp.dest('dist'))
