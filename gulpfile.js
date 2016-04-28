@@ -193,7 +193,7 @@ function litmus () {
   // var awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
 
   return gulp.src(['dist/**/*.html', '!dist/preview.html'])
-    .pipe(mandrillHandlebars())
+    .pipe(simulateMandrillHandlebars())
     .pipe($.if(!!awsURL, $.replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)))
     .pipe($.litmus(CONFIG.litmus))
     .pipe(gulp.dest('dist'))
