@@ -9,14 +9,8 @@
         {{#ifpage 'diy-debt-monthly-budget'}}
           Your {{hb 'month'}} payment plan
         {{/ifpage}}
-        {{#ifpage 'diy-debt-payment-reminder-single'}}
-          {{{{raw}}}}
-            {{#if 'accounts.length === 1'}}
-              Upcoming payment reminder
-            {{else}}
-              Upcoming payments reminder
-            {{/if}}
-          {{{{/raw}}}}
+        {{#ifpage 'diy-debt-payment-reminder'}}
+            Upcoming payment reminder
         {{/ifpage}}
       </h2>
       <spacer size="20"></spacer>

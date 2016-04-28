@@ -5,11 +5,12 @@
     <columns small="12" large="12">
       <spacer size="40"></spacer>
       <h6 class="text-center"><strong>
+        It’s that time again. Your payment is due for
         {{{{raw}}}}
           {{#if 'accounts.length === 1'}}
-            It's that time again. Your payment for {{accounts.[0].name}} is due.
+            {{accounts.[0].name}}.
           {{else}}
-            It's that time again. You have payments due for {{accounts.length}} of your accounts.
+            {{#each accounts}}{{#if @last}} and {{else if @first}}{{else}}, {{/if}} {{name}}{{/each}}.
           {{/if}}
         {{{{/raw}}}}
       </strong></h6>
@@ -17,17 +18,11 @@
   </row>
   <row>
     <columns small="12" large="12">
-      {{{{raw}}}}
-        {{#if 'accounts.length === 1'}}
-          <p class="text-center">Head over to {{accounts.[0].institution}}’s site to pay down your debt — and then celebrate. You’ll soon be one step closer to financial freedom.</p>
-          <p class="text-center">Want to check out all your recommended payments for the month?</p>
-        {{else}}
-        {{/if}}
-      {{{{/raw}}}}
-
+      <p class="text-center">You have seven days left to make your monthly payment on time — then celebrate! You’ll soon be one step closer to financial freedom.</p>
+      <p class="text-center">Want to check out all your recommended payments for the month?</p>
       <spacer size="20"></spacer>
       <center>
-        <button class="default large payment-reminder__button" href="#">Check out my payment plan</button>
+        <button class="default large payment-reminder__button" href="#">Got to my payment plan</button>
       </center>
     </columns>
   </row>
