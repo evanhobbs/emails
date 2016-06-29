@@ -1,0 +1,38 @@
+{{> logo-header}}
+<container>
+  <row class="calendar-header">
+    <columns small="12" large="12">
+      <spacer size="30"></spacer>
+      <center>
+        <img class="calendar-header__image" src="assets/img/calendar.png" alt="">
+      </center>
+      <spacer size="20"></spacer>
+      <h2 class="calendar-header__heading text-center">
+          Your June payment plan
+      </h2>
+      <spacer size="20"></spacer>
+    </columns>
+  </row>
+  <row>
+    <columns small="12" large="12">
+        <spacer size="40"></spacer>
+        <p><strong>It’s June and we’re on a mission: to help you take control of your debt.</strong></p>
+        <p>Which is why we’re excited to let you know we’ve added personalized payment plans to help you pay down your debt faster.</p>
+        <p>When you sign in at NerdWallet, you won’t just see all of your accounts. Now you’ll be able to enter the exact amount you can pay toward debt that month and receive a payment plan – made just for you.</p>
+
+        <spacer size="15"></spacer>
+        <img src="assets/img/budget-mock-table.png" alt="">
+        <spacer size="30"></spacer>
+
+        <p>This plan will guide you toward paying your debt down fast (and saving money in the long run). To learn more and get started, <a href="{{hb 'base_url'}}/home/signin?utm_source=monthly_plan&utm_medium=email&utm_campaign=monthly_plan">sign in</a> and enter your budget for this month.</p>
+        <spacer size="10"></spacer>
+        <center>
+          <button class="default large payment-reminder__button" href="{{hb 'base_url'}}/home/signin?utm_source=monthly_plan&utm_medium=email&utm_campaign=monthly_plan">Sign in now</button>
+        </center>
+        <spacer size="10"></spacer>
+        <p>Nerdy insight — your payment plan updates as often as you update your budget. So don’t be afraid to play around with the numbers and see how quickly you could get out of debt!</p>
+    </columns>
+  </row>
+  <row>
+</container>
+{{> unsubscribe email_name="monthly update" email_type="monthly_updates" utm="utm_source=monthly_plan&utm_medium=email&utm_campaign=monthly_plan"}}

@@ -11,40 +11,7 @@ var siphon = require('siphon-media-query')
 var path = require('path')
 var merge = require('merge-stream')
 var Mandrill = require('mandrill-api').Mandrill
-var Handlebars = require('handlebars')
-var through = require('through2')
-
-// mandrill has it's own custom handlebars helpers - simulating them here so we can
-// do a pretend compile locally
-var mandrillHandlebarsHelpers = {
-  if: function (statement, options) {
-    var result = (function (data) {
-      // make all the attributes for data local variables for eval
-      Object.keys(data).forEach(key => this[key] = data[key])
-      return eval(statement)
-    }(this))
-
-    if (result) return options.fn(this)
-    else return options.inverse(this)
-  }
-}
-
-Handlebars.registerHelper(mandrillHandlebarsHelpers)
-
-var simulateMandrillHandlebars = function () {
-  return through.obj(function (file, encoding, callback) {
-    var templateData = require('./src/fixtures/' + path.basename(file.path, '.html'))
-    var html = file.contents.toString()
-    // the first panini compile html escapes all the " and ' in hb tags so convert them
-    // back before recompiling
-    html = html.replace(/\{\{.*?\}\}/g, function (match) {
-      return match.replace(/&quot;/g, '"').replace(/&apos;/g, "'")
-    })
-    var template = Handlebars.compile(html)
-    file.contents = new Buffer(template(templateData))
-    callback(null, file)
-  })
-}
+var simulateMandrillHandlebars = require('./simulate-mandrill-handlebars')
 
 const $ = plugins()
 // Look for the --production flag
@@ -160,7 +127,7 @@ function inliner (css) {
     .pipe($.inlineCss, {
       applyStyleTags: false
     })
-    .pipe($.replace, '<!-- <style> -->', `<style>${mqCss}</style>`)
+    .pipe($.replace, '<!-- <style> -->', '<style>' + mqCss + '</style>')
     // .pipe($.htmlmin, {
     //   collapseWhitespace: true,
     //   minifyCSS: true

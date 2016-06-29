@@ -1,10 +1,7 @@
 <container class="container--unsubscribe">
   <spacer size="40"></spacer>
   <p class="text-center"><small style="color: #8a8a8a;">
-    You've received this
-    {{#ifpage 'diy-debt-monthly-budget'}}monthly payment plan{{/ifpage}}
-    {{#ifpage 'diy-debt-payment-reminder'}}payment reminder{{/ifpage}}
-    email because you've signed up for a NerdWallet account to help manage your debts. <a href="https://www.nerdwallet.com/home/unsubscribe/{{hb 'notification_type'}}/{{hb 'unsubscribe_token'}}">Unsubscribe</a> from these types of emails or manage your email communication preferences from your <a href="https://www.nerdwallet.com/home/settings/notifications">Account Settings</a>.
+    You've received this {{email_name}} email because you've signed up for a NerdWallet account to help manage your debts. <a href="{{hb 'base_url'}}/home/unsubscribe/?type={{email_type}}&token={{hb 'unsubscribe_token'}}&{{utm}}">Unsubscribe</a> from these types of emails or manage your email communication preferences from your <a href="{{hb 'base_url'}}/home/settings/notifications?{{utm}}">Account Settings</a>.
   </small></p>
   <p class="text-center"><small style="color: #8a8a8a;">NerdWallet | 901 Market St, 6th Floor | San Francisco, CA 94103</small></p>
 </container>

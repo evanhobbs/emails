@@ -4,7 +4,7 @@
   <row>
     <columns small="12" large="12">
         <spacer size="40"></spacer>
-        <h6 class="text-center"><strong>Hey there, {{hb 'first_name'}}.</strong></h6>
+        <h6 class="text-center"><strong>Hey there, {{hb 'global_profile.first_name'}}.</strong></h6>
         <spacer size="30"></spacer>
         <p class="text-center">It’s {{hb 'month'}} — which means it’s time to put another dent in your debt.</p>
         <p class="text-center">All you have to do is sign in and enter how much you can pay toward debt this month. Then we'll cook up a shiny new plan – just for you.</p>
@@ -16,4 +16,4 @@
   </row>
   <row>
 </container>
-{{> unsubscribe}}
+{{> unsubscribe email_name="monthly update" email_type="monthly_updates" utm=utm}}
