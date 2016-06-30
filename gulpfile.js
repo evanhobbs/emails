@@ -12,19 +12,22 @@ var path = require('path')
 var merge = require('merge-stream')
 var Mandrill = require('mandrill-api').Mandrill
 var simulateMandrillHandlebars = require('./simulate-mandrill-handlebars')
-
+var rename = require('gulp-rename')
 const $ = plugins()
+var _ = require('lodash')
+
 // Look for the --production flag
 var PRODUCTION = !!(yargs.argv.production)
-// used for processes that need to enforce production
-function setProduction (done) {
-  PRODUCTION = true
-  done()
-}
+var INLINE_CSS = !!(yargs.argv.inlinecss)
 
 const CONFIG = JSON.parse(fs.readFileSync('./config.json'))
 
-const awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
+const getawsURL = function () {
+  var awsURL = _.get(CONFIG, 'aws.url', false)
+  if (awsURL) awsURL += PRODUCTION ? '/prod' : '/dev'
+  return awsURL
+}
+
 const mandrill_client = new Mandrill(CONFIG.mandrill_key)
 
 // Build the "dist" folder by running all of the above tasks
@@ -43,7 +46,8 @@ gulp.task('litmus',
 gulp.task('zip',
   gulp.series('build', zip))
 
-gulp.task('updateMandrill', gulp.series(setProduction, 'build', aws, updateMandrill))
+gulp.task('updateMandrill', gulp.series('build', aws, updateMandrill))
+// gulp.task('updateMandrill', gulp.series(setProduction, 'build', aws, updateMandrill))
 
 function preview (done) {
   return gulp.src('preview/**/*')
@@ -80,11 +84,11 @@ function resetPages (done) {
 // Compile Sass into CSS
 function sass () {
   return gulp.src('src/assets/scss/app.scss')
-    .pipe($.if(!PRODUCTION, $.sourcemaps.init()))
+    .pipe($.if(!PRODUCTION && !INLINE_CSS, $.sourcemaps.init()))
     .pipe($.sass({
       includePaths: ['node_modules/foundation-emails/scss']
     }).on('error', $.sass.logError))
-    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
+    .pipe($.if(!PRODUCTION && !INLINE_CSS, $.sourcemaps.write()))
     .pipe(gulp.dest('dist/css'))
 }
 
@@ -98,7 +102,7 @@ function images () {
 // Inline CSS and minify HTML
 function inline () {
   return gulp.src('dist/**/*.html')
-    .pipe($.if(PRODUCTION, inliner('dist/css/app.css')))
+    .pipe($.if(PRODUCTION || INLINE_CSS, inliner('dist/css/app.css')))
     .pipe(gulp.dest('dist'))
 }
 
@@ -122,8 +126,7 @@ function watch () {
 function inliner (css) {
   var css = fs.readFileSync(css).toString()
   var mqCss = siphon(css)
-
-  var pipe = lazypipe()
+   var pipe = lazypipe()
     .pipe($.inlineCss, {
       applyStyleTags: false
     })
@@ -139,11 +142,16 @@ function inliner (css) {
 // Post images to AWS S3 so they are accessible to Litmus test
 function aws () {
   var publisher = !!CONFIG.aws ? $.awspublish.create(CONFIG.aws) : $.awspublish.create()
+  var awsPath = 'nw-email-generator/' + (PRODUCTION ? 'prod' : 'dev')
   var headers = {
     'Cache-Control': 'max-age=315360000, no-transform, public'
   }
 
   return gulp.src('./dist/assets/img/*')
+    .pipe(rename(function (path) {
+      // update the path so AWS doesn't put it in the root
+      path.dirname = awsPath
+    }))
     // publisher will add Content-Length, Content-Type and headers specified above
     // If not specified it will set x-amz-acl to public-read by default
     .pipe(publisher.publish(headers))
@@ -157,18 +165,16 @@ function aws () {
 
 // Send email to Litmus for testing. If no AWS creds then do not replace img urls.
 function litmus () {
-  // var awsURL = !!CONFIG && !!CONFIG.aws && !!CONFIG.aws.url ? CONFIG.aws.url : false
-
   return gulp.src(['dist/**/*.html', '!dist/preview.html'])
     .pipe(simulateMandrillHandlebars())
-    .pipe($.if(!!awsURL, $.replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)))
+    .pipe($.if(!!getawsURL(), $.replace(/=('|")(\/?assets\/img)/g, '=$1' + getawsURL())))
     .pipe($.litmus(CONFIG.litmus))
     .pipe(gulp.dest('dist'))
 }
 
 function updateMandrill (done) {
   const templateName = yargs.argv.template
-  const html = fs.readFileSync('./dist/' + templateName + '.html').toString().replace(/=('|")(\/?assets\/img)/g, '=$1' + awsURL)
+  const html = fs.readFileSync('./dist/' + templateName + '.html').toString().replace(/=('|")(\/?assets\/img)/g, '=$1' + getawsURL())
   mandrill_client.templates.update({
     'name': templateName,
     'code': html,
