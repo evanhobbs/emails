@@ -5,14 +5,7 @@
     <columns small="12" large="12">
       <spacer size="40"></spacer>
       <h6 class="text-center"><strong>
-        It’s that time again. Your payment is due for
-        {{{{raw}}}}
-          {{#if multipleAccounts}}
-            {{#each accounts}}{{#if @last}} and {{else if @first}}{{else}}, {{/if}} {{name}}{{/each}}.
-          {{else}}
-            {{accounts.[0].name}}.
-          {{/if}}
-        {{{{/raw}}}}
+        It’s that time again. {{{{raw}}}}{{#if multipleAccounts}}You have payments due on your accounts.{{else}}You have a payment due on one of your accounts.{{/if}}{{{{/raw}}}}
       </strong></h6>
     </columns>
   </row>
@@ -22,7 +15,7 @@
       <p class="text-center">Want to check out all your recommended payments for the month?</p>
       <spacer size="20"></spacer>
       <center>
-        <button class="default large payment-reminder__button" href="#">Go to my payment plan</button>
+        <button class="default large payment-reminder__button" href="{{hb 'base_url'}}/debt/dashboard?utm_source=debt&utm_medium=email&utm_campaign=payment_reminder">Go to my payment plan</button>
       </center>
     </columns>
   </row>
