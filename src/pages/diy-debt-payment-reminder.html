@@ -7,10 +7,10 @@
       <h6 class="text-center"><strong>
         It’s that time again. Your payment is due for
         {{{{raw}}}}
-          {{#if `accounts.length === 1`}}
-            {{accounts.[0].name}}.
-          {{else}}
+          {{#if multipleAccounts}}
             {{#each accounts}}{{#if @last}} and {{else if @first}}{{else}}, {{/if}} {{name}}{{/each}}.
+          {{else}}
+            {{accounts.[0].name}}.
           {{/if}}
         {{{{/raw}}}}
       </strong></h6>
@@ -22,7 +22,7 @@
       <p class="text-center">Want to check out all your recommended payments for the month?</p>
       <spacer size="20"></spacer>
       <center>
-        <button class="default large payment-reminder__button" href="#">Got to my payment plan</button>
+        <button class="default large payment-reminder__button" href="#">Go to my payment plan</button>
       </center>
     </columns>
   </row>
